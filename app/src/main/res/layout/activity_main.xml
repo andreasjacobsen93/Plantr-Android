@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="dk.andreasjacobsen.plantr.MainActivity"
+    android:background="#4F7302">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/light"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:scaleType="fitXY" />
+
+        <ImageView
+            android:id="@+id/rain"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:scaleType="fitXY" />
+
+        <ImageView
+            android:id="@+id/humidity"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:scaleType="fitXY" />
+
+        <ImageView
+            android:id="@+id/tree"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:scaleType="fitStart"
+            android:layout_marginBottom="75dp"
+            android:layout_marginTop="50dp" />
+
+        <ImageView
+            android:id="@+id/ice"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:scaleType="fitXY"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="50dp" />
+
+        <ImageView
+            android:id="@+id/soil"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scaleType="fitXY"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_alignBottom="@+id/soil"
+            android:layout_alignParentStart="true"
+            android:text="Mon 22:15"
+            android:layout_marginBottom="128dip"
+            android:textSize="24sp"
+            android:visibility="gone"
+            android:background="#fff"
+            android:padding="8dip" />
+
+    </RelativeLayout>
+
+    <com.github.clans.fab.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        app:fab_progress_showBackground="false"
+        app:fab_progress_indeterminate="true"
+        app:fab_progress_color="#97BF04"
+        app:fab_colorNormal="#618C03"
+        app:fab_colorPressed="#618C03" />
+
+</android.support.design.widget.CoordinatorLayout>

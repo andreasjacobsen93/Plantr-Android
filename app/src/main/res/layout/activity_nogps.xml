@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="dk.andreasjacobsen.plantr.LoadActivity"
+    android:background="#4F7302">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/imageView"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:src="@drawable/no_gps"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cannot access location"
+        android:id="@+id/textView"
+        android:textSize="24sp"
+        android:layout_marginTop="19dp"
+        android:textColor="#FFF"
+        android:layout_alignTop="@+id/imageView"
+        android:layout_alignStart="@+id/textView2" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Location data is required to scan for\nbluetooth low energy plant sensors.\nPlease allow this permission\nin settings or try reinstalling the app.\nYour data is not shared with anyone."
+        android:id="@+id/textView2"
+        android:textSize="17sp"
+        android:layout_marginTop="30dp"
+        android:textAlignment="textStart"
+        android:textColor="#FFF"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="24dp" />
+</RelativeLayout>
