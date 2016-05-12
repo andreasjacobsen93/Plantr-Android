@@ -32,8 +32,10 @@ public class BluetoothScanner implements IBluetoothScanner {
     private List<ScanFilter> filters;
 
     private IBluetoothEventListener listener;
-    boolean isRecurrings;
+    boolean isRecurring;
     BluetoothDevice lastDevice;
+
+    BluetoothLoader loader;
 
     // Stops scanning after 3 seconds
     private static long SCAN_PERIOD = 3000;
@@ -50,13 +52,14 @@ public class BluetoothScanner implements IBluetoothScanner {
         filters.add(filter);
         settings = new ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_POWER).build();
         scanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
+        loader = new BluetoothLoader(context, listener);
 
-        isRecurrings = false;
+        isRecurring = false;
     }
 
-    BluetoothScanner(Context context, IBluetoothEventListener listener, boolean isRecurrings, BluetoothDevice lastDevice) {
+    BluetoothScanner(Context context, IBluetoothEventListener listener, boolean isRecurring, BluetoothDevice lastDevice) {
         this(context, listener);
-        this.isRecurrings = true;
+        this.isRecurring = true;
         this.lastDevice = lastDevice;
         if (lastDevice != null) {
             SCAN_PERIOD = 2000;
@@ -70,6 +73,7 @@ public class BluetoothScanner implements IBluetoothScanner {
 
     public void stop(){
         scanDevice(false);
+        loader.stop();
     }
 
     private void scanDevice(final boolean enable) {
@@ -83,7 +87,7 @@ public class BluetoothScanner implements IBluetoothScanner {
                     isScanning = false;
 
                     if (device != null) {
-                        if (isRecurrings) {
+                        if (isRecurring) {
                             if (Objects.equals(device.getAddress(), lastDevice.getAddress())) {
                                 listener.onDeviceStill();
                             } else {
@@ -91,10 +95,10 @@ public class BluetoothScanner implements IBluetoothScanner {
                             }
                         } else {
                             listener.onDeviceFound(device);
-                            new BluetoothLoader(context, listener).connect(device);
+                            loader.connect(device);
                         }
                     } else {
-                        if (isRecurrings) {
+                        if (isRecurring) {
                             listener.onDeviceGone();
                         } else {
                             listener.onDeviceError(0);

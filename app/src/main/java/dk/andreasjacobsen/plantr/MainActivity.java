@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.media.Image;
@@ -31,6 +32,7 @@ import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.github.clans.fab.FloatingActionButton;
 import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 
@@ -111,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
             scanner = new BluetoothScanner(this, this);
         }
         else {
-            scanner = new BluetoothLeScanner(this);
+            scanner = new BluetoothLeScanner(this, this);
         }
 
         startSearching();
@@ -121,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        scanner.stop();
         this.unregisterReceiver(btStateReceiver);
     }
 
@@ -190,13 +193,10 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
 
     @Override
     public void onDeviceError(final int error) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-           stopSearching();
-           ShowToast("Device: " + error);
-            }
-        });
+        if (error != 0) return;
+        Intent intentLoader = new Intent(MainActivity.this, LoadActivity.class);
+        startActivity(intentLoader);
+        finish();
     }
 
     @Override
@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
 
         handler.postDelayed(runnable, 50);
 
-        handler.postDelayed(image, 1000);
+        handler.postDelayed(image, 500);
         ScanRecurring();
     }
 
@@ -254,7 +254,12 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
     @Override
     protected void onResume() {
         super.onResume();
-        new BluetoothScanner(MainActivity.this, MainActivity.this, true, device);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            scanner = new BluetoothScanner(MainActivity.this, MainActivity.this, true, device);
+        }
+        else {
+            scanner = new BluetoothLeScanner(MainActivity.this, MainActivity.this, true, device);
+        }
     }
 
     Handler handler = new Handler();
@@ -262,7 +267,12 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                new BluetoothScanner(MainActivity.this, MainActivity.this, true, device);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    scanner = new BluetoothScanner(MainActivity.this, MainActivity.this, true, device);
+                }
+                else {
+                    scanner = new BluetoothLeScanner(MainActivity.this, MainActivity.this, true, device);
+                }
                 ScanRecurring();
             }
         }, 300000);
@@ -272,60 +282,60 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
         imgTree.setImageDrawable(getResources().getDrawable(R.drawable.tree_left));
         switch (plantData.getSoilLevel(i)) {
             case EXTREMEDRY:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_extremedry));
+                animateInOut(imgSoil, (R.drawable.soil_extremedry));
                 break;
             case VERYDRY:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_verydry));
+                animateInOut(imgSoil, (R.drawable.soil_verydry));
                 break;
             case DRY:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_dry));
+                animateInOut(imgSoil, (R.drawable.soil_dry));
                 break;
             case LIGHTDRY:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_lightdry));
+                animateInOut(imgSoil, (R.drawable.soil_lightdry));
                 break;
             case NORMALDRY:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_normaldry));
+                animateInOut(imgSoil, (R.drawable.soil_normaldry));
                 break;
             case NORMAL:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_normal));
+                animateInOut(imgSoil, (R.drawable.soil_normal));
                 break;
             case NORMALWET:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_normalwet));
+                animateInOut(imgSoil, (R.drawable.soil_normalwet));
                 break;
             case WET:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_wet));
+                animateInOut(imgSoil, (R.drawable.soil_wet));
                 break;
             case EXTREMEWET:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_extremewet));
+                animateInOut(imgSoil, (R.drawable.soil_extremewet));
                 break;
             case NA:
-                animateInOut(imgSoil, getResources().getDrawable(R.drawable.soil_na));
+                animateInOut(imgSoil, (R.drawable.soil_na));
                 break;
         }
         switch (plantData.getHumidityLevel(i)) {
             case VERYDRY:
-                animateInOut(imgHumid, getResources().getDrawable(R.drawable.humidity_verydry));
+                animateInOut(imgHumid, (R.drawable.humidity_verydry));
                 break;
             case DRY:
-                animateInOut(imgHumid, getResources().getDrawable(R.drawable.humidity_dry));
+                animateInOut(imgHumid, (R.drawable.humidity_dry));
                 break;
             case NORMAL:
-                animateInOut(imgHumid, null);
+                animateInOut(imgHumid, 0);//R.drawable.humidity_na);
                 break;
             case GREAT:
-                animateInOut(imgHumid, getResources().getDrawable(R.drawable.humidity_great));
+                animateInOut(imgHumid, (R.drawable.humidity_great));
                 break;
             case WET:
-                animateInOut(imgHumid, getResources().getDrawable(R.drawable.humidity_wet));
+                animateInOut(imgHumid, (R.drawable.humidity_wet));
                 break;
             case VERYWET:
-                animateInOut(imgHumid, getResources().getDrawable(R.drawable.humidity_verywet));
+                animateInOut(imgHumid, (R.drawable.humidity_verywet));
                 break;
             case EXTREMEWET:
-                animateInOut(imgHumid, getResources().getDrawable(R.drawable.humidity_extremewet));
+                animateInOut(imgHumid, (R.drawable.humidity_extremewet));
                 break;
             case NA:
-                animateInOut(imgHumid, getResources().getDrawable(R.drawable.humidity_na));
+                animateInOut(imgHumid, (R.drawable.humidity_na));
                 break;
         }
         switch (plantData.getTimeStatus(i)) {
@@ -334,135 +344,135 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
                     case BURNING:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_dark));
+                                animateInOut(imgLight, (R.drawable.morning_hot_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_dark));
+                                animateInOut(imgLight, (R.drawable.morning_hot_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_light));
+                                animateInOut(imgLight, (R.drawable.morning_hot_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_bright));
+                                animateInOut(imgLight, (R.drawable.morning_hot_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_bright));
+                                animateInOut(imgLight, (R.drawable.morning_hot_bright));
                                 break;
                         }
                         break;
                     case HOT:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_dark));
+                                animateInOut(imgLight, (R.drawable.morning_hot_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_dark));
+                                animateInOut(imgLight, (R.drawable.morning_hot_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_light));
+                                animateInOut(imgLight, (R.drawable.morning_hot_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_bright));
+                                animateInOut(imgLight, (R.drawable.morning_hot_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_hot_bright));
+                                animateInOut(imgLight, (R.drawable.morning_hot_bright));
                                 break;
                         }
                         break;
                     case NICE:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_dark));
+                                animateInOut(imgLight, (R.drawable.morning_nice_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_dark));
+                                animateInOut(imgLight, (R.drawable.morning_nice_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_light));
+                                animateInOut(imgLight, (R.drawable.morning_nice_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_bright));
+                                animateInOut(imgLight, (R.drawable.morning_nice_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_bright));
+                                animateInOut(imgLight, (R.drawable.morning_nice_bright));
                                 break;
                         }
                         break;
                     case OKAY:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_dark));
+                                animateInOut(imgLight, (R.drawable.morning_nice_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_dark));
+                                animateInOut(imgLight, (R.drawable.morning_nice_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_light));
+                                animateInOut(imgLight, (R.drawable.morning_nice_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_bright));
+                                animateInOut(imgLight, (R.drawable.morning_nice_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_nice_bright));
+                                animateInOut(imgLight, (R.drawable.morning_nice_bright));
                                 break;
                         }
                         break;
                     case COLD:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_dark));
+                                animateInOut(imgLight, (R.drawable.morning_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_dark));
+                                animateInOut(imgLight, (R.drawable.morning_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_light));
+                                animateInOut(imgLight, (R.drawable.morning_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_bright));
+                                animateInOut(imgLight, (R.drawable.morning_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_bright));
+                                animateInOut(imgLight, (R.drawable.morning_cold_bright));
                                 break;
                         }
                         break;
                     case VERYCOLD:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.cold));
+                        animateInOut(imgIce, (R.drawable.cold));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_dark));
+                                animateInOut(imgLight, (R.drawable.morning_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_dark));
+                                animateInOut(imgLight, (R.drawable.morning_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_light));
+                                animateInOut(imgLight, (R.drawable.morning_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_bright));
+                                animateInOut(imgLight, (R.drawable.morning_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_bright));
+                                animateInOut(imgLight, (R.drawable.morning_cold_bright));
                                 break;
                         }
                         break;
                     case FREEZING:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.freezing));
+                        animateInOut(imgIce, (R.drawable.freezing));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_dark));
+                                animateInOut(imgLight, (R.drawable.morning_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_dark));
+                                animateInOut(imgLight, (R.drawable.morning_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_light));
+                                animateInOut(imgLight, (R.drawable.morning_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_bright));
+                                animateInOut(imgLight, (R.drawable.morning_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.morning_cold_bright));
+                                animateInOut(imgLight, (R.drawable.morning_cold_bright));
                                 break;
                         }
                         break;
@@ -473,135 +483,135 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
                     case BURNING:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_dark));
+                                animateInOut(imgLight, (R.drawable.evening_hot_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_dark));
+                                animateInOut(imgLight, (R.drawable.evening_hot_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_light));
+                                animateInOut(imgLight, (R.drawable.evening_hot_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_bright));
+                                animateInOut(imgLight, (R.drawable.evening_hot_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_bright));
+                                animateInOut(imgLight, (R.drawable.evening_hot_bright));
                                 break;
                         }
                         break;
                     case HOT:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_dark));
+                                animateInOut(imgLight, (R.drawable.evening_hot_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_dark));
+                                animateInOut(imgLight, (R.drawable.evening_hot_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_light));
+                                animateInOut(imgLight, (R.drawable.evening_hot_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_bright));
+                                animateInOut(imgLight, (R.drawable.evening_hot_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_hot_bright));
+                                animateInOut(imgLight, (R.drawable.evening_hot_bright));
                                 break;
                         }
                         break;
                     case NICE:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_dark));
+                                animateInOut(imgLight, (R.drawable.evening_nice_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_dark));
+                                animateInOut(imgLight, (R.drawable.evening_nice_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_light));
+                                animateInOut(imgLight, (R.drawable.evening_nice_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_bright));
+                                animateInOut(imgLight, (R.drawable.evening_nice_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_bright));
+                                animateInOut(imgLight, (R.drawable.evening_nice_bright));
                                 break;
                         }
                         break;
                     case OKAY:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_dark));
+                                animateInOut(imgLight, (R.drawable.evening_nice_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_dark));
+                                animateInOut(imgLight, (R.drawable.evening_nice_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_light));
+                                animateInOut(imgLight, (R.drawable.evening_nice_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_bright));
+                                animateInOut(imgLight, (R.drawable.evening_nice_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_nice_bright));
+                                animateInOut(imgLight, (R.drawable.evening_nice_bright));
                                 break;
                         }
                         break;
                     case COLD:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_dark));
+                                animateInOut(imgLight, (R.drawable.evening_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_dark));
+                                animateInOut(imgLight, (R.drawable.evening_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_light));
+                                animateInOut(imgLight, (R.drawable.evening_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_bright));
+                                animateInOut(imgLight, (R.drawable.evening_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_bright));
+                                animateInOut(imgLight, (R.drawable.evening_cold_bright));
                                 break;
                         }
                         break;
                     case VERYCOLD:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.cold));
+                        animateInOut(imgIce, (R.drawable.cold));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_dark));
+                                animateInOut(imgLight, (R.drawable.evening_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_dark));
+                                animateInOut(imgLight, (R.drawable.evening_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_light));
+                                animateInOut(imgLight, (R.drawable.evening_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_bright));
+                                animateInOut(imgLight, (R.drawable.evening_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_bright));
+                                animateInOut(imgLight, (R.drawable.evening_cold_bright));
                                 break;
                         }
                         break;
                     case FREEZING:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.freezing));
+                        animateInOut(imgIce, (R.drawable.freezing));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_dark));
+                                animateInOut(imgLight, (R.drawable.evening_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_dark));
+                                animateInOut(imgLight, (R.drawable.evening_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_light));
+                                animateInOut(imgLight, (R.drawable.evening_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_bright));
+                                animateInOut(imgLight, (R.drawable.evening_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.evening_cold_bright));
+                                animateInOut(imgLight, (R.drawable.evening_cold_bright));
                                 break;
                         }
                         break;
@@ -612,135 +622,135 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
                     case BURNING:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_dark));
+                                animateInOut(imgLight, (R.drawable.night_hot_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_dark));
+                                animateInOut(imgLight, (R.drawable.night_hot_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_light));
+                                animateInOut(imgLight, (R.drawable.night_hot_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_bright));
+                                animateInOut(imgLight, (R.drawable.night_hot_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_bright));
+                                animateInOut(imgLight, (R.drawable.night_hot_bright));
                                 break;
                         }
                         break;
                     case HOT:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_dark));
+                                animateInOut(imgLight, (R.drawable.night_hot_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_dark));
+                                animateInOut(imgLight, (R.drawable.night_hot_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_light));
+                                animateInOut(imgLight, (R.drawable.night_hot_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_bright));
+                                animateInOut(imgLight, (R.drawable.night_hot_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_hot_bright));
+                                animateInOut(imgLight, (R.drawable.night_hot_bright));
                                 break;
                         }
                         break;
                     case NICE:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_dark));
+                                animateInOut(imgLight, (R.drawable.night_nice_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_dark));
+                                animateInOut(imgLight, (R.drawable.night_nice_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_light));
+                                animateInOut(imgLight, (R.drawable.night_nice_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_bright));
+                                animateInOut(imgLight, (R.drawable.night_nice_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_bright));
+                                animateInOut(imgLight, (R.drawable.night_nice_bright));
                                 break;
                         }
                         break;
                     case OKAY:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_dark));
+                                animateInOut(imgLight, (R.drawable.night_nice_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_dark));
+                                animateInOut(imgLight, (R.drawable.night_nice_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_light));
+                                animateInOut(imgLight, (R.drawable.night_nice_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_bright));
+                                animateInOut(imgLight, (R.drawable.night_nice_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_bright));
+                                animateInOut(imgLight, (R.drawable.night_nice_bright));
                                 break;
                         }
                         break;
                     case COLD:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_dark));
+                                animateInOut(imgLight, (R.drawable.night_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_dark));
+                                animateInOut(imgLight, (R.drawable.night_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_light));
+                                animateInOut(imgLight, (R.drawable.night_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_bright));
+                                animateInOut(imgLight, (R.drawable.night_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_bright));
+                                animateInOut(imgLight, (R.drawable.night_nice_bright));
                                 break;
                         }
                         break;
                     case VERYCOLD:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.cold));
+                        animateInOut(imgIce, (R.drawable.cold));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_dark));
+                                animateInOut(imgLight, (R.drawable.night_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_dark));
+                                animateInOut(imgLight, (R.drawable.night_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_light));
+                                animateInOut(imgLight, (R.drawable.night_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_bright));
+                                animateInOut(imgLight, (R.drawable.night_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_bright));
+                                animateInOut(imgLight, (R.drawable.night_nice_bright));
                                 break;
                         }
                         break;
                     case FREEZING:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.freezing));
+                        animateInOut(imgIce, (R.drawable.freezing));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_dark));
+                                animateInOut(imgLight, (R.drawable.night_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_dark));
+                                animateInOut(imgLight, (R.drawable.night_cold_dark));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_light));
+                                animateInOut(imgLight, (R.drawable.night_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_cold_bright));
+                                animateInOut(imgLight, (R.drawable.night_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.night_nice_bright));
+                                animateInOut(imgLight, (R.drawable.night_nice_bright));
                                 break;
                         }
                         break;
@@ -751,135 +761,135 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
                     case BURNING:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_burning_dark));
+                                animateInOut(imgLight, (R.drawable.day_burning_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_burning_dim));
+                                animateInOut(imgLight, (R.drawable.day_burning_dim));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_burning_light));
+                                animateInOut(imgLight, (R.drawable.day_burning_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_burning_bright));
+                                animateInOut(imgLight, (R.drawable.day_burning_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_burning_verybright));
+                                animateInOut(imgLight, (R.drawable.day_burning_verybright));
                                 break;
                         }
                         break;
                     case HOT:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_hot_dark));
+                                animateInOut(imgLight, (R.drawable.day_hot_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_hot_dim));
+                                animateInOut(imgLight, (R.drawable.day_hot_dim));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_hot_light));
+                                animateInOut(imgLight, (R.drawable.day_hot_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_hot_bright));
+                                animateInOut(imgLight, (R.drawable.day_hot_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_hot_verybright));
+                                animateInOut(imgLight, (R.drawable.day_hot_verybright));
                                 break;
                         }
                         break;
                     case NICE:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_nice_dark));
+                                animateInOut(imgLight, (R.drawable.day_nice_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_nice_dim));
+                                animateInOut(imgLight, (R.drawable.day_nice_dim));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_nice_light));
+                                animateInOut(imgLight, (R.drawable.day_nice_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_nice_bright));
+                                animateInOut(imgLight, (R.drawable.day_nice_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_nice_verybright));
+                                animateInOut(imgLight, (R.drawable.day_nice_verybright));
                                 break;
                         }
                         break;
                     case OKAY:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_okay_dark));
+                                animateInOut(imgLight, (R.drawable.day_okay_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_okay_dim));
+                                animateInOut(imgLight, (R.drawable.day_okay_dim));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_okay_light));
+                                animateInOut(imgLight, (R.drawable.day_okay_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_okay_bright));
+                                animateInOut(imgLight, (R.drawable.day_okay_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_okay_verybright));
+                                animateInOut(imgLight, (R.drawable.day_okay_verybright));
                                 break;
                         }
                         break;
                     case COLD:
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_dark));
+                                animateInOut(imgLight, (R.drawable.day_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_dim));
+                                animateInOut(imgLight, (R.drawable.day_cold_dim));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_light));
+                                animateInOut(imgLight, (R.drawable.day_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_bright));
+                                animateInOut(imgLight, (R.drawable.day_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_verybright));
+                                animateInOut(imgLight, (R.drawable.day_cold_verybright));
                                 break;
                         }
                         break;
                     case VERYCOLD:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.cold));
+                        animateInOut(imgIce, (R.drawable.cold));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_dark));
+                                animateInOut(imgLight, (R.drawable.day_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_dim));
+                                animateInOut(imgLight, (R.drawable.day_cold_dim));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_light));
+                                animateInOut(imgLight, (R.drawable.day_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_bright));
+                                animateInOut(imgLight, (R.drawable.day_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_verybright));
+                                animateInOut(imgLight, (R.drawable.day_cold_verybright));
                                 break;
                         }
                         break;
                     case FREEZING:
-                        imgIce.setImageDrawable(getResources().getDrawable(R.drawable.freezing));
+                        animateInOut(imgIce, (R.drawable.freezing));
                         switch (plantData.getLightLevel(i)) {
                             case DARK:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_dark));
+                                animateInOut(imgLight, (R.drawable.day_cold_dark));
                                 break;
                             case DIM:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_dim));
+                                animateInOut(imgLight, (R.drawable.day_cold_dim));
                                 break;
                             case LIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_light));
+                                animateInOut(imgLight, (R.drawable.day_cold_light));
                                 break;
                             case BRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_bright));
+                                animateInOut(imgLight, (R.drawable.day_cold_bright));
                                 break;
                             case VERYBRIGHT:
-                                animateInOut(imgLight, getResources().getDrawable(R.drawable.day_cold_verybright));
+                                animateInOut(imgLight, (R.drawable.day_cold_verybright));
                                 break;
                         }
                         break;
@@ -887,7 +897,7 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
                 break;
         }
         if (plantData.getLightLevel(i) == PlantData.LightLevel.NA)
-            animateInOut(imgLight, getResources().getDrawable(R.drawable.day_na));
+            animateInOut(imgLight, (R.drawable.day_na));
     }
 
     public int i = 0;
@@ -965,7 +975,25 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
         return !mScroller.isFinished() || (Build.VERSION.SDK_INT >= 11);
     }
 
-    private void animateInOut(final ImageView image, final Drawable in) {
+    private void animateInOut2(final ImageView image, final Drawable in) {
+        Drawable backgrounds[] = new Drawable[2];
+        backgrounds[0] = image.getDrawable();
+        backgrounds[1] = in;
+
+        TransitionDrawable crossfader = new TransitionDrawable(backgrounds);
+        image.setImageDrawable(crossfader);
+        crossfader.startTransition(200);
+    }
+
+    private void animateInOut(final ImageView image, final int in) {
+        if (in == 0) {
+            image.setImageDrawable(null);
+        } else {
+            image.setImageDrawable(getResources().getDrawable(in));
+        }
+        //if (!mScroller.isFinished()) return;
+        //Glide.with(this).load(in).into(image);
+/*
         Animation fadeout = new AlphaAnimation(1, 0);
         fadeout.setInterpolator(new AccelerateInterpolator());
         fadeout.setDuration(200);
@@ -1009,7 +1037,7 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
             }
         });
 
-        image.startAnimation(fadeout);
+        image.startAnimation(fadeout);*/
     }
 
     private void animateOut(final View view) {
@@ -1102,7 +1130,7 @@ public class MainActivity extends AppCompatActivity implements IBluetoothEventLi
                 }
             }
 
-            handler.postDelayed(image, 1000);
+            handler.postDelayed(image, 500);
         }
     };
 

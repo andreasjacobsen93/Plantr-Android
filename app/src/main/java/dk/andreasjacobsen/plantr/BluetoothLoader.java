@@ -42,6 +42,10 @@ public class BluetoothLoader {
         }
     }
 
+    void stop(){
+        connectGatt.close();
+    }
+
     private BluetoothGattCallback callback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
